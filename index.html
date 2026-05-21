@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="id" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UAS Genap MTK Kelas 8 - SMPN 38 Bandar Lampung</title>
+    <meta name="google" content="notranslate">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; -webkit-user-select: none; }
+        .no-copy { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        .grid-btn.answered { background-color: #10B981; color: white; border-color: #10B981; }
+        .grid-btn.current { background-color: #3B82F6; color: white; border-color: #3B82F6; }
+        .blur-screen { filter: blur(10px); pointer-events: none; }
+        /* Scrollbar custom */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen no-copy notranslate" oncontextmenu="return false;">
+
+    <!-- Custom Modal/Alert System -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center transform transition-all">
+            <div id="modal-icon" class="text-5xl mb-4 text-red-500">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 id="modal-title" class="text-xl font-bold mb-2 text-gray-800">Peringatan!</h2>
+            <p id="modal-message" class="text-gray-600 mb-6">Pesan peringatan di sini.</p>
+            <button id="modal-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition duration-200">Mengerti</button>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-lg max-w-md w-full overflow-hidden">
+            <div class="bg-blue-700 p-6 text-center text-white">
+                <div class="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fas fa-school text-blue-700 text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold">UAS GENAP</h1>
+                <p class="text-blue-100">Matematika Kelas VIII</p>
+                <p class="font-semibold mt-1">SMPN 38 Bandar Lampung</p>
+            </div>
+            <div class="p-6">
+                <div class="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                    <i class="fas fa-shield-alt mr-1"></i> <b>Sistem Anti-Kecurangan Aktif.</b> Jangan keluar dari layar ujian, mengubah tab, atau merekam layar. Maksimal 2x pelanggaran, ujian otomatis dikumpulkan.
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2" for="student-name">Nama Lengkap</label>
+                    <input type="text" id="student-name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Masukkan nama Anda..." required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2" for="student-class">Kelas</label>
+                    <select id="student-class" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                        <option value="" disabled selected>Pilih Kelas</option>
+                        <option value="8A">Kelas 8 A</option>
+                        <option value="8B">Kelas 8 B</option>
+                        <option value="8C">Kelas 8 C</option>
+                        <option value="8D">Kelas 8 D</option>
+                    </select>
+                </div>
+                <button onclick="startExam()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-300 flex justify-center items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Mulai Ujian (90 Menit)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Screen -->
+    <div id="exam-screen" class="hidden flex flex-col h-screen bg-gray-50">
+        <!-- Header -->
+        <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-10 sticky top-0">
+            <div class="flex items-center">
+                <button onclick="toggleSidebar()" class="mr-3 text-gray-600 hover:text-blue-600 text-xl">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <div>
+                    <h2 class="font-bold text-gray-800 hidden sm:block">Matematika Kls 8</h2>
+                    <p id="display-student" class="text-xs text-gray-500 hidden sm:block">Nama Siswa</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold flex items-center border border-red-200">
+                    <i class="fas fa-exclamation-circle mr-1"></i> Peringatan: <span id="warning-count" class="ml-1">0</span>/2
+                </div>
+                <div class="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full font-bold flex items-center shadow-sm border border-blue-200">
+                    <i class="fas fa-clock mr-2 text-blue-600"></i>
+                    <span id="timer-display" class="tracking-wider">90:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content area -->
+        <div class="flex-1 overflow-y-auto relative p-4 flex justify-center">
+            <!-- Sidebar / Daftar Soal -->
+            <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full w-64 bg-white shadow-2xl z-40 transition-transform duration-300 ease-in-out flex flex-col">
+                <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800">Daftar Soal</h3>
+                    <button onclick="toggleSidebar()" class="text-gray-500 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="p-4 overflow-y-auto flex-1">
+                    <div id="question-grid" class="grid grid-cols-5 gap-2">
+                        <!-- Grid generated by JS -->
+                    </div>
+                </div>
+                <div class="p-4 border-t bg-gray-50">
+                    <button onclick="confirmSubmit()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg transition shadow-sm">
+                        <i class="fas fa-check-double mr-1"></i> Selesai Ujian
+                    </button>
+                </div>
+            </div>
+            <!-- Overlay for sidebar -->
+            <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden backdrop-blur-sm"></div>
+
+            <!-- Question Container -->
+            <div class="w-full max-w-2xl bg-white rounded-2xl shadow-sm p-6 mb-20 border border-gray-100 h-fit">
+                <div class="flex justify-between items-center mb-6 border-b pb-3">
+                    <span class="bg-blue-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-sm" id="question-number-badge">Soal 1</span>
+                    <span class="text-sm text-gray-500 font-semibold">Skor: 2.5 Poin</span>
+                </div>
+                <div id="question-text" class="text-lg text-gray-800 mb-6 leading-relaxed font-medium">
+                    <!-- Question text here -->
+                </div>
+                <div id="options-container" class="space-y-3">
+                    <!-- Options generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Navigation -->
+        <footer class="bg-white border-t p-4 fixed bottom-0 w-full flex justify-between max-w-4xl mx-auto left-0 right-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button id="btn-prev" onclick="prevQuestion()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 disabled:opacity-50 transition border border-gray-200">
+                <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
+            </button>
+            <button id="btn-next" onclick="nextQuestion()" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition shadow-md">
+                Selanjutnya <i class="fas fa-chevron-right ml-1"></i>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="hidden min-h-screen bg-gray-100 p-4 pb-20">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center mb-6 mt-4 border-t-8 border-blue-600">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Ujian Selesai!</h1>
+                <p id="result-student-name" class="text-lg text-gray-600 mb-4 font-medium">Nama, Kelas</p>
+                <div class="flex justify-center space-x-6 mb-6">
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 w-28">
+                        <p class="text-green-600 text-sm font-bold">BENAR</p>
+                        <p id="result-correct" class="text-3xl font-black text-green-700">0</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-200 w-28">
+                        <p class="text-red-600 text-sm font-bold">SALAH</p>
+                        <p id="result-wrong" class="text-3xl font-black text-red-700">0</p>
+                    </div>
+                </div>
+                <div class="bg-blue-50 py-6 rounded-xl border border-blue-100">
+                    <p class="text-blue-800 font-bold mb-1 uppercase tracking-widest text-sm">Nilai Akhir</p>
+                    <p id="result-score" class="text-6xl font-black text-blue-700">100</p>
+                </div>
+                <p id="save-status" class="mt-4 text-sm text-gray-500"><i class="fas fa-spinner fa-spin mr-1 hidden" id="save-spinner"></i> Menyimpan data ke server...</p>
+            </div>
+
+            <h2 class="text-xl font-bold text-gray-800 mb-4 px-2"><i class="fas fa-book-open mr-2 text-blue-600"></i>Pembahasan Soal</h2>
+            <div id="review-container" class="space-y-4">
+                <!-- Review list generated by JS -->
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- KONFIGURASI ---
+// Ganti URL ini dengan URL Web App Google Apps Script Anda
+const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbwdzjG3Foi-5XBUDVE-3zn4kDmPgr2LbBRD0mjAzA_K3XYiEVknLcKYBDANem0vGBUr/exec"; 
+
+// --- DATABASE SOAL (40 Soal: Pythagoras, Lingkaran, Aljabar, Statistik) ---
+const questions = [
+    // --- Teorema Pythagoras (1-10) ---
+    { id: 1, text: "Segitiga siku-siku memiliki panjang alas 6 cm dan tinggi 8 cm. Berapakah panjang sisi miringnya (hipotenusa)?", options: ["10 cm", "12 cm", "14 cm", "16 cm"], correct: 0, explanation: "c² = a² + b² = 6² + 8² = 36 + 64 = 100. c = √100 = 10 cm." },
+    { id: 2, text: "Sebuah segitiga siku-siku memiliki sisi miring 13 cm dan salah satu sisi tegaknya 5 cm. Panjang sisi tegak yang lain adalah...", options: ["8 cm", "10 cm", "12 cm", "15 cm"], correct: 2, explanation: "b² = c² - a² = 13² - 5² = 169 - 25 = 144. b = √144 = 12 cm." },
+    { id: 3, text: "Sebuah tangga yang panjangnya 5 meter bersandar pada tembok. Jarak ujung bawah tangga terhadap tembok adalah 3 meter. Tinggi tembok yang dapat dicapai tangga adalah...", options: ["2 meter", "4 meter", "5 meter", "6 meter"], correct: 1, explanation: "Tinggi = √(5² - 3²) = √(25 - 9) = √16 = 4 meter." },
+    { id: 4, text: "Tripel Pythagoras di bawah ini yang benar adalah...", options: ["3, 4, 6", "5, 12, 13", "6, 8, 11", "7, 24, 26"], correct: 1, explanation: "5, 12, 13 adalah tripel Pythagoras karena 5² + 12² = 25 + 144 = 169 = 13²." },
+    { id: 5, text: "Sebuah kapal berlayar ke arah timur sejauh 15 km, kemudian berbelok ke utara sejauh 8 km. Jarak terpendek kapal tersebut dari titik awal keberangkatan adalah...", options: ["17 km", "20 km", "23 km", "25 km"], correct: 0, explanation: "Jarak = √(15² + 8²) = √(225 + 64) = √289 = 17 km." },
+    { id: 6, text: "Luas sebuah segitiga siku-siku adalah 30 cm². Jika panjang alasnya 12 cm, keliling segitiga tersebut adalah...", options: ["25 cm", "30 cm", "36 cm", "40 cm"], correct: 1, explanation: "L = 1/2 × a × t -> 30 = 1/2 × 12 × t -> t = 5 cm. Sisi miring = √(12² + 5²) = 13 cm. Keliling = 12 + 5 + 13 = 30 cm." },
+    { id: 7, text: "Pada belah ketupat, panjang diagonal-diagonalnya adalah 16 cm dan 12 cm. Panjang sisi belah ketupat tersebut adalah...", options: ["8 cm", "10 cm", "14 cm", "20 cm"], correct: 1, explanation: "Sisi = √((1/2 × 16)² + (1/2 × 12)²) = √(8² + 6²) = √(64 + 36) = √100 = 10 cm." },
+    { id: 8, text: "Terdapat tiga buah bilangan bulat yaitu 8, 15, dan x. Agar ketiga bilangan tersebut membentuk tripel Pythagoras, nilai x adalah...", options: ["16", "17", "18", "19"], correct: 1, explanation: "x² = 8² + 15² = 64 + 225 = 289. x = √289 = 17." },
+    { id: 9, text: "Panjang diagonal sebuah persegi adalah 10√2 cm. Panjang sisi persegi tersebut adalah...", options: ["5 cm", "10 cm", "15 cm", "20 cm"], correct: 1, explanation: "Diagonal persegi = s√2. Maka s√2 = 10√2, sehingga sisi (s) = 10 cm." },
+    { id: 10, text: "Andi berjalan ke arah selatan sejauh 9 m, lalu ke timur sejauh 12 m. Jarak Andi sekarang dari posisi semula adalah...", options: ["15 m", "18 m", "21 m", "25 m"], correct: 0, explanation: "Jarak = √(9² + 12²) = √(81 + 144) = √225 = 15 m." },
+
+    // --- Lingkaran (11-20) ---
+    { id: 11, text: "Jika diameter sebuah lingkaran adalah 28 cm, maka jari-jarinya adalah...", options: ["7 cm", "14 cm", "21 cm", "28 cm"], correct: 1, explanation: "Jari-jari (r) = diameter / 2 = 28 / 2 = 14 cm." },
+    { id: 12, text: "Keliling lingkaran yang memiliki jari-jari 7 cm adalah... (π = 22/7)", options: ["22 cm", "44 cm", "88 cm", "154 cm"], correct: 1, explanation: "K = 2 × π × r = 2 × 22/7 × 7 = 44 cm." },
+    { id: 13, text: "Luas sebuah lingkaran adalah 154 cm². Panjang jari-jari lingkaran tersebut adalah... (π = 22/7)", options: ["7 cm", "10.5 cm", "14 cm", "21 cm"], correct: 0, explanation: "L = π × r² -> 154 = 22/7 × r² -> r² = 154 × 7 / 22 = 49. r = 7 cm." },
+    { id: 14, text: "Keliling sebuah ban mobil adalah 176 cm. Panjang jari-jari ban tersebut adalah... (π = 22/7)", options: ["14 cm", "21 cm", "28 cm", "35 cm"], correct: 2, explanation: "K = 2 × π × r -> 176 = 2 × 22/7 × r -> 176 = 44/7 × r -> r = 176 × 7 / 44 = 28 cm." },
+    { id: 15, text: "Sebuah roda sepeda memiliki jari-jari 21 cm. Jika roda berputar sebanyak 100 kali, jarak yang ditempuh adalah... (π = 22/7)", options: ["66 meter", "132 meter", "660 meter", "1.320 meter"], correct: 1, explanation: "Keliling = 2 × 22/7 × 21 = 132 cm. Jarak = 132 cm × 100 = 13.200 cm = 132 meter." },
+    { id: 16, text: "Jika keliling sebuah lingkaran adalah 132 cm, berapakah panjang jari-jarinya? (π = 22/7)", options: ["14 cm", "21 cm", "28 cm", "42 cm"], correct: 1, explanation: "K = 2 × π × r -> 132 = 2 × 22/7 × r -> r = 132 × 7 / 44 = 21 cm." },
+    { id: 17, text: "Keliling sebuah lapangan berbentuk lingkaran adalah 88 m. Luas lapangan tersebut adalah... (π = 22/7)", options: ["308 m²", "616 m²", "1.232 m²", "2.464 m²"], correct: 1, explanation: "K = 2πr -> 88 = 2 × 22/7 × r -> r = 14 m. L = πr² = 22/7 × 14² = 616 m²." },
+    { id: 18, text: "Luas sebuah lingkaran adalah 616 cm². Panjang jari-jarinya adalah... (π = 22/7)", options: ["7 cm", "14 cm", "21 cm", "28 cm"], correct: 1, explanation: "L = π × r² -> 616 = 22/7 × r² -> r² = 616 × 7 / 22 = 196. r = √196 = 14 cm." },
+    { id: 19, text: "Sebuah taman berbentuk lingkaran memiliki keliling 314 meter. Jika π = 3,14, maka panjang jari-jari taman tersebut adalah...", options: ["25 m", "50 m", "100 m", "200 m"], correct: 1, explanation: "K = 2 × π × r -> 314 = 2 × 3,14 × r -> 314 = 6,28 × r -> r = 314 / 6,28 = 50 m." },
+    { id: 20, text: "Jika sebuah lingkaran memiliki jari-jari 10 cm, maka luas setengah lingkaran tersebut adalah... (π = 3,14)", options: ["157 cm²", "314 cm²", "628 cm²", "1.256 cm²"], correct: 0, explanation: "Luas 1/2 Lingkaran = 1/2 × π × r² = 1/2 × 3,14 × 100 = 1/2 × 314 = 157 cm²." },
+
+    // --- Aljabar (21-30) ---
+    { id: 21, text: "Bentuk sederhana dari 3x + 5y - x + 2y adalah...", options: ["2x + 7y", "4x + 7y", "2x + 3y", "4x + 3y"], correct: 0, explanation: "(3x - x) + (5y + 2y) = 2x + 7y." },
+    { id: 22, text: "Hasil perkalian dari (x + 3)(x - 2) adalah...", options: ["x² - x - 6", "x² + x - 6", "x² - x + 6", "x² + x + 6"], correct: 1, explanation: "x(x) + x(-2) + 3(x) + 3(-2) = x² - 2x + 3x - 6 = x² + x - 6." },
+    { id: 23, text: "Nilai x yang memenuhi persamaan 2x - 5 = 11 adalah...", options: ["3", "6", "8", "16"], correct: 2, explanation: "2x = 11 + 5 -> 2x = 16 -> x = 8." },
+    { id: 24, text: "Jika a = 2 dan b = -3, maka nilai dari 2a² - 3b adalah...", options: ["-1", "1", "17", "25"], correct: 2, explanation: "2(2)² - 3(-3) = 2(4) + 9 = 8 + 9 = 17." },
+    { id: 25, text: "Sebuah persegi panjang memiliki panjang (x + 5) cm dan lebar (x - 2) cm. Jika x = 5, luas persegi panjang tersebut adalah...", options: ["15 cm²", "24 cm²", "30 cm²", "40 cm²"], correct: 2, explanation: "Panjang = 5 + 5 = 10 cm. Lebar = 5 - 2 = 3 cm. Luas = 10 × 3 = 30 cm²." },
+    { id: 26, text: "Umur ayah sekarang 3 kali umur Budi. Jika selisih umur mereka adalah 30 tahun, maka umur Budi sekarang adalah...", options: ["10 tahun", "15 tahun", "20 tahun", "25 tahun"], correct: 1, explanation: "Ayah = 3x, Budi = x. 3x - x = 30 -> 2x = 30 -> x = 15 tahun." },
+    { id: 27, text: "Hasil pengurangan (3x - 4y) dari (5x + 2y) adalah...", options: ["2x + 6y", "2x - 6y", "-2x + 6y", "-2x - 6y"], correct: 0, explanation: "(5x + 2y) - (3x - 4y) = 5x + 2y - 3x + 4y = 2x + 6y." },
+    { id: 28, text: "Hasil dari penjabaran (2x - 3)² adalah...", options: ["4x² - 9", "4x² + 9", "4x² - 12x + 9", "4x² - 12x - 9"], correct: 2, explanation: "(2x - 3)(2x - 3) = 4x² - 6x - 6x + 9 = 4x² - 12x + 9." },
+    { id: 29, text: "Pemfaktoran dari x² - 16 adalah...", options: ["(x - 4)(x - 4)", "(x + 4)(x + 4)", "(x - 4)(x + 4)", "(x - 8)(x + 2)"], correct: 2, explanation: "Selisih dua kuadrat: a² - b² = (a - b)(a + b). x² - 4² = (x - 4)(x + 4)." },
+    { id: 30, text: "Jika 1/2 x + 3 = 7, maka nilai x adalah...", options: ["4", "6", "8", "10"], correct: 2, explanation: "1/2 x = 7 - 3 -> 1/2 x = 4 -> x = 4 × 2 = 8." },
+
+    // --- Statistika (31-40) ---
+    { id: 31, text: "Diketahui data nilai matematika: 6, 7, 8, 6, 9, 7, 6. Modus dari data tersebut adalah...", options: ["6", "7", "8", "9"], correct: 0, explanation: "Modus adalah nilai yang paling sering muncul. Nilai 6 muncul 3 kali." },
+    { id: 32, text: "Rata-rata (mean) dari data 5, 8, 7, 9, 6 adalah...", options: ["6", "6.5", "7", "7.5"], correct: 2, explanation: "Total = 5+8+7+9+6 = 35. Mean = 35 / 5 = 7." },
+    { id: 33, text: "Median dari data: 4, 6, 8, 5, 5, 9, 7 adalah...", options: ["5", "6", "7", "8"], correct: 1, explanation: "Urutkan data: 4, 5, 5, 6, 7, 8, 9. Nilai tengah (ke-4) adalah 6." },
+    { id: 34, text: "Jangkauan (range) dari data: 12, 15, 8, 20, 10, 18 adalah...", options: ["8", "10", "12", "20"], correct: 2, explanation: "Jangkauan = Nilai terbesar - Nilai terkecil = 20 - 8 = 12." },
+    { id: 35, text: "Rata-rata nilai ulangan 4 siswa adalah 7,5. Jika nilai Andi dimasukkan, rata-ratanya menjadi 7,8. Nilai Andi adalah...", options: ["8", "8.5", "9", "9.5"], correct: 2, explanation: "Total 4 siswa = 4 × 7.5 = 30. Total 5 siswa = 5 × 7.8 = 39. Nilai Andi = 39 - 30 = 9." },
+    { id: 36, text: "Tabel frekuensi nilai: 6(3 org), 7(5 org), 8(4 org), 9(2 org). Banyaknya siswa yang mendapat nilai di atas rata-rata adalah...", options: ["6 orang", "8 orang", "9 orang", "11 orang"], correct: 0, explanation: "Total nilai = (6×3)+(7×5)+(8×4)+(9×2) = 18+35+32+18 = 103. Total siswa = 14. Mean = 103/14 ≈ 7.35. Nilai di atas rata-rata adalah 8 dan 9 (4+2 = 6 orang)." },
+    { id: 37, text: "Rata-rata nilai ulangan matematika 9 orang siswa adalah 70. Jika nilai satu siswa bernama Budi yaitu 90 ditambahkan, maka rata-rata nilai yang baru adalah...", options: ["71", "72", "73", "75"], correct: 1, explanation: "Total nilai 9 siswa = 9 × 70 = 630. Total nilai setelah Budi masuk = 630 + 90 = 720. Rata-rata baru = 720 / 10 siswa = 72." },
+    { id: 38, text: "Modus dari data nilai ujian: 7, 8, 6, 9, 7, 8, 8, 6, 9 adalah...", options: ["6", "7", "8", "9"], correct: 2, explanation: "Angka 8 muncul paling banyak, yaitu sebanyak 3 kali." },
+    { id: 39, text: "Nilai rata-rata dari 10 bilangan adalah 15. Jika setiap bilangan dikalikan 2 lalu ditambah 3, rata-rata yang baru adalah...", options: ["18", "30", "33", "36"], correct: 2, explanation: "Rata-rata baru = (Rata-rata lama × 2) + 3 = (15 × 2) + 3 = 30 + 3 = 33." },
+    { id: 40, text: "Nilai ulangan matematika Budi berturut-turut: 80, 75, 90, 85, 100, 70. Jangkauan (range) dari nilai Budi adalah...", options: ["15", "20", "25", "30"], correct: 3, explanation: "Jangkauan = Nilai terbesar - Nilai terkecil = 100 - 70 = 30." }
+];
+
+// --- STATE VARIABLES ---
+let studentName = "";
+let studentClass = "";
+let userAnswers = new Array(40).fill(null);
+let currentQuestionIndex = 0;
+let timeRemaining = 90 * 60; // 90 menit dalam detik
+let timerInterval;
+let warningCount = 0;
+const MAX_WARNINGS = 2;
+let isExamRunning = false;
+
+// --- DOM ELEMENTS ---
+const elLogin = document.getElementById('login-screen');
+const elExam = document.getElementById('exam-screen');
+const elResult = document.getElementById('result-screen');
+const elQuestionText = document.getElementById('question-text');
+const elOptionsContainer = document.getElementById('options-container');
+const elQNumBadge = document.getElementById('question-number-badge');
+const elBtnPrev = document.getElementById('btn-prev');
+const elBtnNext = document.getElementById('btn-next');
+const elGrid = document.getElementById('question-grid');
+const elSidebar = document.getElementById('sidebar');
+const elOverlay = document.getElementById('sidebar-overlay');
+const elTimer = document.getElementById('timer-display');
+const elWarningCount = document.getElementById('warning-count');
+
+// --- MODAL SYSTEM ---
+function showModal(title, message, callback = null) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-message').innerText = message;
+    const modal = document.getElementById('custom-modal');
+    const btn = document.getElementById('modal-btn');
+    
+    // Ganti ikon berdasarkan judul
+    const icon = document.getElementById('modal-icon');
+    if(title.toLowerCase().includes('selesai') || title.toLowerCase().includes('konfirmasi')) {
+        icon.innerHTML = '<i class="fas fa-check-circle text-blue-500"></i>';
+        btn.classList.replace('bg-red-600', 'bg-blue-600');
+        btn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
+    } else {
+        icon.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i>';
+        btn.classList.replace('bg-blue-600', 'bg-red-600');
+        btn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+    }
+
+    modal.classList.remove('hidden');
+    
+    btn.onclick = function() {
+        modal.classList.add('hidden');
+        if (callback) callback();
+    };
+}
+
+// --- INIT & EXAM FLOW ---
+function startExam() {
+    studentName = document.getElementById('student-name').value.trim();
+    studentClass = document.getElementById('student-class').value;
+
+    if (!studentName || !studentClass) {
+        showModal('Data Tidak Lengkap', 'Silakan isi Nama dan Kelas terlebih dahulu sebelum memulai ujian.');
+        return;
+    }
+
+    // Masuk Fullscreen untuk anti-cheat
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen ditolak"));
+    }
+
+    document.getElementById('display-student').innerText = `${studentName} - ${studentClass}`;
+    
+    elLogin.classList.add('hidden');
+    elExam.classList.remove('hidden');
+    
+    isExamRunning = true;
+    renderQuestionGrid();
+    loadQuestion(0);
+    startTimer();
+}
+
+function loadQuestion(index) {
+    currentQuestionIndex = index;
+    const q = questions[index];
+    
+    elQNumBadge.innerText = `Soal ${index + 1} dari 40`;
+    elQuestionText.innerText = q.text;
+    
+    elOptionsContainer.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+    
+    q.options.forEach((opt, i) => {
+        const isSelected = userAnswers[index] === i;
+        const btn = document.createElement('div');
+        btn.className = `flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`;
+        btn.onclick = () => selectOption(i);
+        
+        btn.innerHTML = `
+            <div class="w-8 h-8 flex items-center justify-center rounded-full font-bold mr-3 ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}">${letters[i]}</div>
+            <div class="flex-1 text-gray-800 font-medium">${opt}</div>
+            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-600' : 'border-gray-300'}">
+                ${isSelected ? '<div class="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>' : ''}
+            </div>
+        `;
+        elOptionsContainer.appendChild(btn);
+    });
+
+    // Update Navigation Buttons
+    elBtnPrev.disabled = index === 0;
+    
+    if (index === questions.length - 1) {
+        elBtnNext.innerHTML = `<i class="fas fa-check-double mr-1"></i> Selesai`;
+        elBtnNext.classList.replace('bg-blue-600', 'bg-green-600');
+        elBtnNext.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+        elBtnNext.onclick = confirmSubmit;
+    } else {
+        elBtnNext.innerHTML = `Selanjutnya <i class="fas fa-chevron-right ml-1"></i>`;
+        elBtnNext.classList.replace('bg-green-600', 'bg-blue-600');
+        elBtnNext.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+        elBtnNext.onclick = nextQuestion;
+    }
+
+    updateGridUI();
+}
+
+function selectOption(optIndex) {
+    userAnswers[currentQuestionIndex] = optIndex;
+    loadQuestion(currentQuestionIndex); // re-render options
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < questions.length - 1) loadQuestion(currentQuestionIndex + 1);
+}
+
+function prevQuestion() {
+    if (currentQuestionIndex > 0) loadQuestion(currentQuestionIndex - 1);
+}
+
+// --- SIDEBAR & GRID ---
+function toggleSidebar() {
+    const isClosed = elSidebar.classList.contains('-translate-x-full');
+    if (isClosed) {
+        elSidebar.classList.remove('-translate-x-full');
+        elOverlay.classList.remove('hidden');
+    } else {
+        elSidebar.classList.add('-translate-x-full');
+        elOverlay.classList.add('hidden');
+    }
+}
+
+function renderQuestionGrid() {
+    elGrid.innerHTML = '';
+    for (let i = 0; i < questions.length; i++) {
+        const btn = document.createElement('button');
+        btn.id = `grid-btn-${i}`;
+        btn.className = `w-full aspect-square flex items-center justify-center rounded-lg font-bold border-2 transition ${userAnswers[i] !== null ? 'grid-btn answered' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`;
+        btn.innerText = i + 1;
+        btn.onclick = () => {
+            loadQuestion(i);
+            toggleSidebar(); // close sidebar after clicking
+        };
+        elGrid.appendChild(btn);
+    }
+}
+
+function updateGridUI() {
+    for (let i = 0; i < questions.length; i++) {
+        const btn = document.getElementById(`grid-btn-${i}`);
+        if(!btn) continue;
+        
+        // Reset classes
+        btn.className = 'w-full aspect-square flex items-center justify-center rounded-lg font-bold border-2 transition';
+        
+        if (i === currentQuestionIndex) {
+            btn.classList.add('grid-btn', 'current');
+        } else if (userAnswers[i] !== null) {
+            btn.classList.add('grid-btn', 'answered');
+        } else {
+            btn.classList.add('border-gray-300', 'text-gray-600', 'hover:bg-gray-100');
+        }
+    }
+}
+
+// --- TIMER ---
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeRemaining--;
+        let m = Math.floor(timeRemaining / 60);
+        let s = timeRemaining % 60;
+        elTimer.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 300) { // 5 menit terakhir
+            elTimer.parentElement.classList.replace('bg-blue-100', 'bg-red-100');
+            elTimer.parentElement.classList.replace('text-blue-800', 'text-red-800');
+            elTimer.parentElement.classList.add('animate-pulse');
+        }
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            forceSubmit("Waktu Habis!");
+        }
+    }, 1000);
+}
+
+// --- ANTI CHEAT SYSTEM ---
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden && isExamRunning) {
+        handleViolation("Meninggalkan Tab/Aplikasi");
+    }
+});
+
+window.addEventListener("blur", () => {
+    if (isExamRunning) {
+        document.body.classList.add('blur-screen');
+        handleViolation("Layar kehilangan fokus (Membuka aplikasi lain)");
+    }
+});
+
+window.addEventListener("focus", () => {
+    document.body.classList.remove('blur-screen');
+});
+
+// Disable F12, Ctrl+Shift+I, dll
+document.addEventListener("keydown", (e) => {
+    if(isExamRunning) {
+        if (e.key === "F12" || (e.ctrlKey && e.shiftKey && e.key === "I") || (e.ctrlKey && e.key === "c") || e.key === "PrintScreen") {
+            e.preventDefault();
+            handleViolation("Mencoba menggunakan tombol terlarang (Screenshot/Copy)");
+        }
+    }
+});
+
+function handleViolation(reason) {
+    if(!isExamRunning) return;
+    warningCount++;
+    elWarningCount.innerText = warningCount;
+    
+    if (warningCount > MAX_WARNINGS) {
+        forceSubmit(`Sistem mendeteksi kecurangan melebihi batas. Ujian dihentikan.`);
+    } else {
+        showModal("Peringatan Kecurangan!", `Terdeteksi: ${reason}.\nPeringatan ${warningCount} dari ${MAX_WARNINGS}. Jika melanggar lagi, ujian otomatis diselesaikan.`);
+    }
+}
+
+// --- SUBMIT & RESULTS ---
+function confirmSubmit() {
+    const unanswered = userAnswers.filter(a => a === null).length;
+    let msg = unanswered > 0 
+        ? `Terdapat ${unanswered} soal yang belum dijawab. Yakin ingin menyelesaikan ujian?`
+        : `Anda sudah menjawab semua soal. Yakin ingin mengumpulkan?`;
+        
+    // Custom confirm via modal callback
+    document.getElementById('modal-title').innerText = "Konfirmasi Selesai";
+    document.getElementById('modal-message').innerText = msg;
+    const modal = document.getElementById('custom-modal');
+    const btn = document.getElementById('modal-btn');
+    
+    btn.innerHTML = "Ya, Kumpulkan Sekarang";
+    btn.classList.replace('bg-red-600', 'bg-blue-600');
+    btn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
+    
+    modal.classList.remove('hidden');
+    
+    btn.onclick = function() {
+        modal.classList.add('hidden');
+        processResults();
+    };
+}
+
+function forceSubmit(reason) {
+    isExamRunning = false;
+    clearInterval(timerInterval);
+    if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+    
+    showModal("Ujian Dihentikan", reason, processResults);
+}
+
+function processResults() {
+    isExamRunning = false;
+    clearInterval(timerInterval);
+    if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+
+    elExam.classList.add('hidden');
+    elResult.classList.remove('hidden');
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    const reviewContainer = document.getElementById('review-container');
+    reviewContainer.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+
+    questions.forEach((q, i) => {
+        const userAnswer = userAnswers[i];
+        const isCorrect = userAnswer === q.correct;
+        
+        if (isCorrect) correctCount++;
+        else if (userAnswer !== null) wrongCount++;
+        // if null (unanswered), counts neither correct nor wrong, just zero points
+
+        // Generate Review Card
+        const reviewCard = document.createElement('div');
+        reviewCard.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-4";
+        
+        let statusBadge = isCorrect 
+            ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold"><i class="fas fa-check mr-1"></i> Benar</span>`
+            : (userAnswer === null ? `<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold"><i class="fas fa-minus mr-1"></i> Kosong</span>` : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold"><i class="fas fa-times mr-1"></i> Salah</span>`);
+
+        let userAnswerText = userAnswer !== null ? letters[userAnswer] + ". " + q.options[userAnswer] : "Tidak dijawab";
+        let correctAnswerText = letters[q.correct] + ". " + q.options[q.correct];
+
+        reviewCard.innerHTML = `
+            <div class="flex justify-between items-start mb-3">
+                <p class="font-bold text-gray-800">Soal ${i + 1}</p>
+                ${statusBadge}
+            </div>
+            <p class="text-gray-700 mb-4">${q.text}</p>
+            <div class="text-sm space-y-2 mb-4 bg-gray-50 p-3 rounded-lg">
+                <p class="${isCorrect ? 'text-green-600 font-semibold' : 'text-red-600'}">Jawaban Kamu: ${userAnswerText}</p>
+                ${!isCorrect ? `<p class="text-green-600 font-semibold">Kunci Jawaban: ${correctAnswerText}</p>` : ''}
+            </div>
+            <div class="text-sm bg-blue-50 border border-blue-100 p-3 rounded-lg">
+                <p class="font-bold text-blue-800 mb-1"><i class="fas fa-lightbulb text-yellow-500 mr-1"></i> Pembahasan:</p>
+                <p class="text-blue-900">${q.explanation}</p>
+            </div>
+        `;
+        reviewContainer.appendChild(reviewCard);
+    });
+
+    const score = correctCount * 2.5;
+
+    document.getElementById('result-student-name').innerText = `${studentName} - ${studentClass}`;
+    document.getElementById('result-correct').innerText = correctCount;
+    document.getElementById('result-wrong').innerText = wrongCount; // Termasuk yang kosong dianggap salah poinnya, tapi ini untuk display murni salah
+    
+    // Animasi angka nilai
+    let currentScore = 0;
+    const scoreEl = document.getElementById('result-score');
+    const scoreInterval = setInterval(() => {
+        if(currentScore >= score) {
+            clearInterval(scoreInterval);
+            scoreEl.innerText = score;
+        } else {
+            currentScore++;
+            scoreEl.innerText = currentScore;
+        }
+    }, 20);
+
+    // Kirim data ke Google Sheets
+    saveToSpreadsheet(studentName, studentClass, correctCount, questions.length - correctCount, score);
+}
+
+function saveToSpreadsheet(nama, kelas, benar, salah, nilai) {
+    if(SPREADSHEET_URL === "MASUKKAN_URL_WEB_APP_ANDA_DISINI") return; // Skip jika belum disetting
+
+    const statusEl = document.getElementById('save-status');
+    const spinner = document.getElementById('save-spinner');
+    spinner.classList.remove('hidden');
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan data ke server...';
+
+    const data = { nama, kelas, benar, salah, nilai };
+
+    fetch(SPREADSHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Penting untuk bypass CORS di static html
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(() => {
+        statusEl.innerHTML = '<i class="fas fa-check-circle text-green-500 mr-1"></i> Nilai berhasil disimpan ke server guru.';
+    }).catch(err => {
+        statusEl.innerHTML = '<i class="fas fa-times-circle text-red-500 mr-1"></i> Gagal menyimpan otomatis. Screenshot hasil ini dan lapor guru.';
+    });
+}
+</script>
+</body>
+</html>
